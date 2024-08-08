@@ -1,6 +1,6 @@
 name: onboarding_view
-description: Simple and easy Onboarding's for your app.
-version: 0.0.1
+description: Minimalistic Onboarding pages for your Flutter applications. It will reduce your development time by 50%.
+version: 0.0.2
 homepage: https://github.com/metekaganmusaak/onboarding_view
 
 environment:
