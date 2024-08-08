@@ -30,7 +30,7 @@ In the `pubspec.yaml` of your flutter project, add the following dependency:
 ```yaml
 dependencies:
   ...
-  onboarding_view: ^0.0.1
+  onboarding_view: ^0.0.2
 ```
 
 Import these:
