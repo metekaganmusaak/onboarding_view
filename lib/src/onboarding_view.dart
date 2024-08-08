@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:onboarding/src/onboarding.dart';
+import 'package:onboarding_view/onboarding.dart';
 
 /// This widget is base widget for all onboarding screens. Create your
 /// StatelessWidget and return this widget in the build method.
