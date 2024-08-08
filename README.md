@@ -293,7 +293,10 @@ class MyOnboarding extends StatelessWidget {
 }
 ```
 
+Also you can check whole example code here:
+https://github.com/metekaganmusaak/onboarding_view/blob/main/example/lib/main.dart
+
 
 ## Additional information
 
-You can find this package's repo here: https://github.com/metekaganmusaak/onboarding_view
+Package's repo: https://github.com/metekaganmusaak/onboarding_view
