@@ -13,7 +13,7 @@ and the Flutter guide for
 
 # Onboarding View
 
-Clean and minimalistic Onboarding View.
+Clean and minimalistic Onboarding View widget for those seeking simplicity.
 
 ![onboarding_view](https://github.com/user-attachments/assets/bafebdf5-2a69-482a-8e29-4f231e5a41a9)
 
