@@ -18,6 +18,7 @@ Clean and minimalistic Onboarding View widget for those seeking simplicity.
 ![onboarding_view](https://github.com/user-attachments/assets/bafebdf5-2a69-482a-8e29-4f231e5a41a9)
 
 ## Features
+
 - Finish button callback
 - Custom Skip Button action
 - You can define animation duration and curve for page scrolling.
@@ -167,6 +168,7 @@ Than pass this list of onboardings to the Onboarding View.
 ```
 
 That's it. You can see the full example below.
+
 ```dart
 class MyOnboarding extends StatelessWidget {
   const MyOnboarding({super.key});
@@ -294,9 +296,8 @@ class MyOnboarding extends StatelessWidget {
 ```
 
 Also you can check whole example code here:
-https://github.com/metekaganmusaak/onboarding_view/blob/main/example/lib/main.dart
-
+<https://github.com/metekaganmusaak/onboarding_view/blob/main/example/lib/main.dart>
 
 ## Additional information
 
-Package's repo: https://github.com/metekaganmusaak/onboarding_view
+Package's repo: <https://github.com/metekaganmusaak/onboarding_view>
