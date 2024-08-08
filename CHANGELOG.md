@@ -1,7 +1,9 @@
-# 0.0.1
+# CHANGELOG
 
-* Initial
-
-# 0.0.2
+## 0.0.2
 
 * Change pubspec.yaml description.
+
+## 0.0.1
+
+* Initial
