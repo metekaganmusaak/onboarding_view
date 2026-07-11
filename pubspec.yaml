@@ -1,6 +1,6 @@
 name: onboarding_view
 description: Minimalistic Onboarding pages for your Flutter applications. It will reduce your development time by 50%.
-version: 0.0.2
+version: 0.0.3
 homepage: https://github.com/metekaganmusaak/onboarding_view
 
 environment:
@@ -17,3 +17,7 @@ dev_dependencies:
   flutter_lints: ^3.0.0
 
 flutter:
+
+screenshots:
+  - description: "Onboarding View Package Logo"
+    path: assets/logo.png
