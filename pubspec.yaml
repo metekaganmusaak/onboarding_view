@@ -1,11 +1,14 @@
 name: onboarding_view
-description: Minimalistic Onboarding pages for your Flutter applications. It will reduce your development time by 50%.
-version: 0.0.3
+description: >-
+  A modern, highly customizable onboarding for Flutter — glassmorphism, Apple
+  liquid glass, minimal & material styles, rich page/indicator animations,
+  network/GIF/asset media, and zero-dependency local persistence.
+version: 1.0.0
 homepage: https://github.com/metekaganmusaak/onboarding_view
 
 environment:
-  sdk: ">=3.4.3 <4.0.0"
-  flutter: ">=1.17.0"
+  sdk: ">=3.6.0 <4.0.0"
+  flutter: ">=3.27.0"
 
 dependencies:
   flutter:

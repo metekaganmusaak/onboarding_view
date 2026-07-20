@@ -1,303 +1,142 @@
-<!--
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
-
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/guides/libraries/writing-package-pages).
-
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-library-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/developing-packages).
--->
-
 # Onboarding View
 
-Clean and minimalistic Onboarding View widget for those seeking simplicity.
+A modern, **highly customizable** onboarding package for Flutter.
 
-![onboarding_view](https://github.com/user-attachments/assets/bafebdf5-2a69-482a-8e29-4f231e5a41a9)
+Five ready-made looks — **glassmorphism**, **Apple liquid glass**, **minimal**,
+**material** and **adaptive** — with rich page & indicator animations,
+network / GIF / asset / icon / custom media, and **zero-dependency** local
+persistence. Works on mobile, desktop and web.
 
 ## Features
 
-- Finish button callback
-- Custom Skip Button action
-- You can define animation duration and curve for page scrolling.
+- 🎨 **Five built-in styles** (`OnboardingStyle`) — or craft your own `OnboardingTheme`.
+- 🖼️ **Any media** — `OnboardingMedia.network` (with loading/error states),
+  `.gif`, `.asset`, `.icon`, `.custom`.
+- 🌀 **Page transitions** — fade, scale, parallax, cube, depth. Driven by the live
+  swipe position with a shared "connected gradient" background.
+- ● **Animated indicators** — dots, expanding, worm, scale, line/progress (tappable).
+- 🎛️ **Fully customizable** — builder hooks for skip/back/next/finish + the
+  indicator, configurable labels, button variants, layout ratios, blur/opacity.
+- 💾 **Local persistence, no dependencies** — a JSON file on device (web falls
+  back to memory), with a runtime on/off toggle and callbacks for your own storage.
+- ⌨️ **Desktop & web** — responsive wide layout and ← / → keyboard navigation.
 
-## Getting started
-
-In the `pubspec.yaml` of your flutter project, add the following dependency:
+## Install
 
 ```yaml
 dependencies:
-  ...
-  onboarding_view: ^0.0.2
+  onboarding_view: ^1.0.0
 ```
-
-Import these:
 
 ```dart
 import 'package:onboarding_view/onboarding_view.dart';
-import 'package:onboarding_view/onboarding.dart';
 ```
 
-## Usage
-
-First, create your Onboarding pages that you want to show.
+## Quick start
 
 ```dart
-final onboardings = [
-    Onboarding(
-      image: Icon(
-        Icons.filter_1,
-        size: MediaQuery.sizeOf(context).width * 0.7,
-      ),
-      title: Text(
-        'First',
-        style: Theme.of(context).textTheme.displayLarge,
-        textAlign: TextAlign.center,
-      ),
-      description: Text(
-        'This is some explanation about the first onboarding.',
-        style: Theme.of(context).textTheme.bodyLarge,
-        textAlign: TextAlign.center,
-      ),
-      footer: Text(
-        'This is the footer of the first onboarding.',
-        style: Theme.of(context).textTheme.labelMedium,
-        textAlign: TextAlign.center,
-      ),
+OnboardingView(
+  style: OnboardingStyle.glassmorphism,
+  storageKey: 'seen_intro',            // remembers completion (JSON file)
+  onFinish: () => Navigator.of(context).pushReplacement(
+    MaterialPageRoute(builder: (_) => const HomeScreen()),
+  ),
+  pages: const [
+    OnboardingPage(
+      title: 'Welcome aboard',
+      description: 'Everything you need, in one beautiful place.',
+      media: OnboardingMedia.network('https://picsum.photos/600'),
     ),
-    Onboarding(
-      image: Icon(
-        Icons.filter_2,
-        size: MediaQuery.sizeOf(context).width * 0.7,
-      ),
-      title: Text(
-        'Second',
-        style: Theme.of(context).textTheme.displayLarge,
-        textAlign: TextAlign.center,
-      ),
-      description: Text(
-        'This is some explanation about the second onboarding.',
-        style: Theme.of(context).textTheme.bodyLarge,
-        textAlign: TextAlign.center,
-      ),
-      footer: Text(
-        'This is the footer of the second onboarding.',
-        style: Theme.of(context).textTheme.labelMedium,
-        textAlign: TextAlign.center,
-      ),
+    OnboardingPage(
+      title: 'Any media you want',
+      description: 'Images, GIFs, icons or custom widgets.',
+      media: OnboardingMedia.gif('https://example.com/intro.gif'),
     ),
-    Onboarding(
-      image: Icon(
-        Icons.filter_3,
-        size: MediaQuery.sizeOf(context).width * 0.7,
-      ),
-      title: Text(
-        'Third',
-        style: Theme.of(context).textTheme.displayLarge,
-        textAlign: TextAlign.center,
-      ),
-      description: Text(
-        'This is some explanation about the third onboarding.',
-        style: Theme.of(context).textTheme.bodyLarge,
-        textAlign: TextAlign.center,
-      ),
-      footer: Text(
-        'This is the footer of the third onboarding.',
-        style: Theme.of(context).textTheme.labelMedium,
-        textAlign: TextAlign.center,
-      ),
+    OnboardingPage(
+      title: 'You are all set',
+      description: 'Tap get started to jump in.',
+      media: OnboardingMedia.icon(Icons.rocket_launch),
     ),
-    Onboarding(
-      image: Icon(
-        Icons.filter_4,
-        size: MediaQuery.sizeOf(context).width * 0.7,
-      ),
-      title: Text(
-        'Fourth',
-        style: Theme.of(context).textTheme.displayLarge,
-        textAlign: TextAlign.center,
-      ),
-      description: Text(
-        'This is some explanation about the fourth onboarding.',
-        style: Theme.of(context).textTheme.bodyLarge,
-        textAlign: TextAlign.center,
-      ),
-      footer: Text(
-        'This is the footer of the fourth onboarding.',
-        style: Theme.of(context).textTheme.labelMedium,
-        textAlign: TextAlign.center,
-      ),
-    ),
-  ];
+  ],
+);
 ```
 
-Than pass this list of onboardings to the Onboarding View.
+### Show onboarding only once
 
 ```dart
- OnboardingView(
-      pageAnimationDuration: const Duration(seconds: 1),
-      pageAnimation: Curves.fastEaseInToSlowEaseOut,
-      ///
-      /// ! This callback is used for skipping all of the onboardings and
-      /// ! navigating to the last screen of the onboarding. But you can customize it like below.
-      ///
-      // onSkip: () {
-      //   Navigator.of(context).pushReplacement(
-      //     MaterialPageRoute(
-      //       builder: (context) => const MyHomeView(),
-      //     ),
-      //   );
-      // },
-      padding: const EdgeInsets.all(8),
-      onboardings: onboardings
-      skipText: 'Skip',
-      nextText: 'Next',
-      finishText: 'Finish',
-      backText: 'Back',
-      onFinish: () {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => const MyHomeView(),
-          ),
-        );
-      },
-      showSkipButton: true,
-    );
+final seen = await OnboardingView.hasCompleted('seen_intro');
+runApp(MyApp(showOnboarding: !seen));
 ```
 
-That's it. You can see the full example below.
+## Styles
+
+| Style | Look |
+| --- | --- |
+| `glassmorphism` | Frosted translucent cards over a vivid gradient |
+| `liquidGlass` | Apple-style heavy blur, sheen and springy motion |
+| `minimal` | Flat, typography-first, line indicator |
+| `material` | Material 3, filled buttons, expanding dots |
+| `adaptive` | Responsive layout + keyboard nav for desktop/web |
+
+Start from a preset and tweak anything:
 
 ```dart
-class MyOnboarding extends StatelessWidget {
-  const MyOnboarding({super.key});
+final theme = OnboardingTheme.fromStyle(OnboardingStyle.material).copyWith(
+  accentColor: Colors.teal,
+  transition: OnboardingTransition.parallax,
+  indicator: const IndicatorConfig(effect: IndicatorEffect.worm),
+  buttons: const OnboardingButtonConfig(finishLabel: "Let's go"),
+);
 
-  @override
-  Widget build(BuildContext context) {
-    return OnboardingView(
-      pageAnimationDuration: const Duration(seconds: 1),
-      pageAnimation: Curves.fastEaseInToSlowEaseOut,
-
-      ///
-      /// ! This callback is used for skipping all of the onboardings and
-      /// ! navigating to the last screen of the onboarding. But you can customize it like below.
-      ///
-      // onSkip: () {
-      //   Navigator.of(context).pushReplacement(
-      //     MaterialPageRoute(
-      //       builder: (context) => const MyHomeView(),
-      //     ),
-      //   );
-      // },
-
-      padding: const EdgeInsets.all(8),
-      onboardings: [
-        Onboarding(
-          image: Icon(
-            Icons.filter_1,
-            size: MediaQuery.sizeOf(context).width * 0.7,
-          ),
-          title: Text(
-            'First',
-            style: Theme.of(context).textTheme.displayLarge,
-            textAlign: TextAlign.center,
-          ),
-          description: Text(
-            'This is some explanation about the first onboarding.',
-            style: Theme.of(context).textTheme.bodyLarge,
-            textAlign: TextAlign.center,
-          ),
-          footer: Text(
-            'This is the footer of the first onboarding.',
-            style: Theme.of(context).textTheme.labelMedium,
-            textAlign: TextAlign.center,
-          ),
-        ),
-        Onboarding(
-          image: Icon(
-            Icons.filter_2,
-            size: MediaQuery.sizeOf(context).width * 0.7,
-          ),
-          title: Text(
-            'Second',
-            style: Theme.of(context).textTheme.displayLarge,
-            textAlign: TextAlign.center,
-          ),
-          description: Text(
-            'This is some explanation about the second onboarding.',
-            style: Theme.of(context).textTheme.bodyLarge,
-            textAlign: TextAlign.center,
-          ),
-          footer: Text(
-            'This is the footer of the second onboarding.',
-            style: Theme.of(context).textTheme.labelMedium,
-            textAlign: TextAlign.center,
-          ),
-        ),
-        Onboarding(
-          image: Icon(
-            Icons.filter_3,
-            size: MediaQuery.sizeOf(context).width * 0.7,
-          ),
-          title: Text(
-            'Third',
-            style: Theme.of(context).textTheme.displayLarge,
-            textAlign: TextAlign.center,
-          ),
-          description: Text(
-            'This is some explanation about the third onboarding.',
-            style: Theme.of(context).textTheme.bodyLarge,
-            textAlign: TextAlign.center,
-          ),
-          footer: Text(
-            'This is the footer of the third onboarding.',
-            style: Theme.of(context).textTheme.labelMedium,
-            textAlign: TextAlign.center,
-          ),
-        ),
-        Onboarding(
-          image: Icon(
-            Icons.filter_4,
-            size: MediaQuery.sizeOf(context).width * 0.7,
-          ),
-          title: Text(
-            'Fourth',
-            style: Theme.of(context).textTheme.displayLarge,
-            textAlign: TextAlign.center,
-          ),
-          description: Text(
-            'This is some explanation about the fourth onboarding.',
-            style: Theme.of(context).textTheme.bodyLarge,
-            textAlign: TextAlign.center,
-          ),
-          footer: Text(
-            'This is the footer of the fourth onboarding.',
-            style: Theme.of(context).textTheme.labelMedium,
-            textAlign: TextAlign.center,
-          ),
-        ),
-      ],
-      skipText: 'Skip',
-      nextText: 'Next',
-      finishText: 'Finish',
-      backText: 'Back',
-      onFinish: () {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => const MyHomeView(),
-          ),
-        );
-      },
-      showSkipButton: true,
-    );
-  }
-}
+OnboardingView(theme: theme, onFinish: ..., pages: ...);
 ```
 
-Also you can check whole example code here:
-<https://github.com/metekaganmusaak/onboarding_view/blob/main/example/lib/main.dart>
+## Persistence
 
-## Additional information
+Persistence is dependency-free. By default state is written to a local JSON
+file (`JsonFileOnboardingStorage`); on the web it transparently falls back to
+`MemoryOnboardingStorage`.
 
-Package's repo: <https://github.com/metekaganmusaak/onboarding_view>
+```dart
+final storage = OnboardingStorage.defaultStorage();
+
+// Toggle writing at runtime (e.g. from a settings switch):
+storage.persistenceEnabled = false;
+
+OnboardingView(
+  storage: storage,
+  storageKey: 'seen_intro',
+  onCompleted: (key) => debugPrint('completed: $key'), // bring-your-own hook
+  onFinish: ...,
+  pages: ...,
+);
+```
+
+Provide your own backend (Hive, SQLite, a REST API…) by extending
+`OnboardingStorage`.
+
+## Customizing buttons & indicator
+
+```dart
+OnboardingView(
+  nextBuilder: (context, controller) =>
+      IconButton(icon: const Icon(Icons.chevron_right), onPressed: controller.next),
+  indicatorBuilder: (context, controller) => MyCustomIndicator(controller),
+  onFinish: ...,
+  pages: ...,
+);
+```
+
+## Example
+
+The [`example/`](example/) app is a **style gallery**: tap a card to preview each
+style, toggle persistence live, and reset saved state.
+
+```bash
+cd example
+flutter run   # mobile, desktop or -d chrome for web
+```
+
+## License
+
+MIT
