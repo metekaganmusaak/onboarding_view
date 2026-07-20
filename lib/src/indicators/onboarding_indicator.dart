@@ -107,25 +107,40 @@ class PageIndicator extends StatelessWidget {
       );
     }
 
+    // Intrinsic width of the indicator (worst case: one expanded dot). The
+    // indicator is given this fixed size and wrapped in a FittedBox so it
+    // scales down to fit narrow footers instead of overflowing.
+    final expanded =
+        config.effect == IndicatorEffect.expanding ? config.expandedWidth : 0;
+    final width = count * config.dotSize +
+        (count - 1) * config.spacing +
+        expanded +
+        config.dotSize; // small horizontal breathing room
+    final height = config.dotSize * 2.4;
+
     return Semantics(
       label: 'Page ${page.round() + 1} of $count',
-      child: SizedBox(
-        height: config.dotSize * 2.4,
-        child: CustomPaint(
-          painter: _DotsPainter(
-            count: count,
-            page: page,
-            active: active,
-            inactive: inactive,
-            config: config,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: SizedBox(
+          width: width,
+          height: height,
+          child: CustomPaint(
+            painter: _DotsPainter(
+              count: count,
+              page: page,
+              active: active,
+              inactive: inactive,
+              config: config,
+            ),
+            child: onDotTapped == null
+                ? null
+                : _DotHitTargets(
+                    count: count,
+                    config: config,
+                    onDotTapped: onDotTapped!,
+                  ),
           ),
-          child: onDotTapped == null
-              ? null
-              : _DotHitTargets(
-                  count: count,
-                  config: config,
-                  onDotTapped: onDotTapped!,
-                ),
         ),
       ),
     );
@@ -229,6 +244,7 @@ class _DotHitTargets extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         for (var i = 0; i < count; i++)
@@ -236,7 +252,7 @@ class _DotHitTargets extends StatelessWidget {
             behavior: HitTestBehavior.opaque,
             onTap: () => onDotTapped(i),
             child: SizedBox(
-              width: config.expandedWidth,
+              width: config.dotSize + config.spacing,
               height: config.dotSize * 2.4,
             ),
           ),

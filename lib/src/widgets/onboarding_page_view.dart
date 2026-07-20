@@ -79,7 +79,14 @@ class OnboardingPageContent extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Expanded(flex: theme.mediaFlex, child: Center(child: media)),
-              Flexible(flex: theme.textFlex, child: framedText),
+              // Let the text block take the space it needs but never overflow on
+              // short screens — it scrolls internally instead of clipping.
+              Flexible(
+                flex: theme.textFlex,
+                child: SingleChildScrollView(
+                  child: framedText,
+                ),
+              ),
             ],
           );
 

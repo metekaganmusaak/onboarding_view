@@ -3,7 +3,7 @@ description: >-
   A modern, highly customizable onboarding for Flutter — glassmorphism, Apple
   liquid glass, minimal & material styles, rich page/indicator animations,
   network/GIF/asset media, and zero-dependency local persistence.
-version: 1.0.0
+version: 1.0.1
 homepage: https://github.com/metekaganmusaak/onboarding_view
 
 environment:

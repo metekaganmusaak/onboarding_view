@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## 1.0.1
+
+### Fixed
+- **Footer overflow** on small / embedded screens. The page indicator now sits
+  on its own row above the navigation buttons, giving it the full width. The
+  indicator scales to fit (`FittedBox`) and the back / next / finish buttons
+  shrink gracefully, so the footer never overflows — even inside a phone-sized
+  preview.
+- **Vertical overflow** of long page content on short screens: the title +
+  description block now scrolls internally instead of clipping.
+
+### Added
+- 🌐 **Live demo:** <https://torchingale.com/packages/onboarding-view/index.html>
+
 ## 1.0.0
 
 Complete redesign — a modern, highly customizable onboarding toolkit.

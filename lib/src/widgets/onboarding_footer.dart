@@ -94,11 +94,30 @@ class OnboardingFooter extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          back,
-          Expanded(child: Center(child: indicator)),
-          forward,
+          // Indicator sits on its own row above the buttons so it always has
+          // the full width and never competes with the buttons for space.
+          Center(child: indicator),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Flexible(
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: FittedBox(fit: BoxFit.scaleDown, child: back),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Flexible(
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: FittedBox(fit: BoxFit.scaleDown, child: forward),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );

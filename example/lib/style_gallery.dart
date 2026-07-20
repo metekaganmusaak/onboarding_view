@@ -3,8 +3,10 @@ import 'package:onboarding_view/onboarding_view.dart';
 
 import 'main.dart';
 import 'onboarding_data.dart';
+import 'phone_mockup.dart';
 
-/// Landing screen: a gallery of onboarding styles plus persistence controls.
+/// Web showcase: a selection panel on the left, a live phone preview on the
+/// right. Picking a style instantly re-renders the onboarding inside the phone.
 class StyleGalleryScreen extends StatefulWidget {
   const StyleGalleryScreen({super.key});
 
@@ -13,7 +15,11 @@ class StyleGalleryScreen extends StatefulWidget {
 }
 
 class _StyleGalleryScreenState extends State<StyleGalleryScreen> {
+  OnboardingStyle _selected = OnboardingStyle.glassmorphism;
   bool _persist = true;
+
+  // Bumped to force the preview to restart from the first page.
+  int _reloadToken = 0;
 
   @override
   void initState() {
@@ -21,14 +27,22 @@ class _StyleGalleryScreenState extends State<StyleGalleryScreen> {
     _persist = appStorage.persistenceEnabled;
   }
 
-  Future<void> _resetAll() async {
+  void _select(OnboardingStyle style) {
+    setState(() {
+      _selected = style;
+      _reloadToken++;
+    });
+  }
+
+  void _restartPreview() => setState(() => _reloadToken++);
+
+  Future<void> _resetPersistence() async {
     for (final style in OnboardingStyle.values) {
       await appStorage.reset(storageKeyFor(style));
     }
     if (mounted) {
-      setState(() {});
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Onboarding state cleared.')),
+        const SnackBar(content: Text('Saved onboarding state cleared.')),
       );
     }
   }
@@ -36,122 +50,247 @@ class _StyleGalleryScreenState extends State<StyleGalleryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Onboarding styles'),
-        actions: [
-          IconButton(
-            tooltip: 'Reset all onboarding state',
-            icon: const Icon(Icons.restart_alt),
-            onPressed: _resetAll,
+      body: DecoratedBox(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF0F0F17), Color(0xFF1A1230)],
           ),
-        ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          _PersistenceCard(
-            value: _persist,
-            onChanged: (v) {
-              setState(() => _persist = v);
-              appStorage.persistenceEnabled = v;
-            },
-          ),
-          const SizedBox(height: 16),
-          Text('Pick a look', style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 8),
-          LayoutBuilder(
+        ),
+        child: SafeArea(
+          child: LayoutBuilder(
             builder: (context, constraints) {
-              final columns = constraints.maxWidth > 640 ? 3 : 2;
-              return GridView.count(
-                crossAxisCount: columns,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                mainAxisSpacing: 12,
-                crossAxisSpacing: 12,
-                childAspectRatio: 0.82,
+              final narrow = constraints.maxWidth < 900;
+              final panel = _SelectionPanel(
+                selected: _selected,
+                onSelect: _select,
+                persist: _persist,
+                onPersistChanged: (v) {
+                  setState(() => _persist = v);
+                  appStorage.persistenceEnabled = v;
+                },
+                onResetPersistence: _resetPersistence,
+              );
+              final preview = _PreviewArea(
+                key: ValueKey('$_selected-$_reloadToken'),
+                style: _selected,
+                onRestart: _restartPreview,
+              );
+
+              if (narrow) {
+                return ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    SizedBox(height: 640, child: preview),
+                    const SizedBox(height: 16),
+                    panel,
+                  ],
+                );
+              }
+              // True 50/50 web split: selection on the left half, phone on the
+              // right half. The left content is capped and centered so it never
+              // clings to the window edge.
+              return Row(
                 children: [
-                  for (final preset in _presets)
-                    _StyleCard(
-                      preset: preset,
-                      onTap: () => openOnboarding(context, preset.style),
+                  Expanded(
+                    child: Center(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 48, vertical: 40),
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 480),
+                          child: panel,
+                        ),
+                      ),
                     ),
+                  ),
+                  Expanded(
+                    child: DecoratedBox(
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [Color(0xFF15111F), Color(0xFF0B0910)],
+                        ),
+                      ),
+                      child: preview,
+                    ),
+                  ),
                 ],
               );
             },
           ),
-        ],
+        ),
       ),
     );
   }
 }
 
-class _PersistenceCard extends StatelessWidget {
-  const _PersistenceCard({required this.value, required this.onChanged});
+/// Left column: title, style chooser and persistence controls.
+class _SelectionPanel extends StatelessWidget {
+  const _SelectionPanel({
+    required this.selected,
+    required this.onSelect,
+    required this.persist,
+    required this.onPersistChanged,
+    required this.onResetPersistence,
+  });
 
-  final bool value;
-  final ValueChanged<bool> onChanged;
+  final OnboardingStyle selected;
+  final ValueChanged<OnboardingStyle> onSelect;
+  final bool persist;
+  final ValueChanged<bool> onPersistChanged;
+  final VoidCallback onResetPersistence;
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: SwitchListTile(
-        title: const Text('Remember completion'),
-        subtitle: Text(
-          value
-              ? 'State is written to the local JSON file.'
-              : 'Nothing is persisted — every launch shows onboarding.',
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Text(
+            'Flutter package',
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.7),
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.5,
+            ),
+          ),
         ),
-        secondary: const Icon(Icons.save_outlined),
-        value: value,
-        onChanged: onChanged,
-      ),
+        const SizedBox(height: 16),
+        const Text(
+          'onboarding_view',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 40,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -1,
+            height: 1.1,
+          ),
+        ),
+        const SizedBox(height: 10),
+        Text(
+          'A modern, highly customizable onboarding for Flutter. '
+          'Pick a style on the left and preview it live on the phone.',
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.6),
+            fontSize: 16,
+            height: 1.5,
+          ),
+        ),
+        const SizedBox(height: 32),
+        for (final preset in stylePresets)
+          _StyleTile(
+            preset: preset,
+            selected: preset.style == selected,
+            onTap: () => onSelect(preset.style),
+          ),
+        const SizedBox(height: 16),
+        Divider(color: Colors.white.withValues(alpha: 0.1)),
+        const SizedBox(height: 8),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: const Text('Remember completion',
+              style: TextStyle(color: Colors.white)),
+          subtitle: Text(
+            persist ? 'Writing to local JSON file' : 'Persistence disabled',
+            style: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
+          ),
+          value: persist,
+          onChanged: onPersistChanged,
+        ),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton.icon(
+            onPressed: onResetPersistence,
+            icon: const Icon(Icons.restart_alt),
+            label: const Text('Reset saved state'),
+          ),
+        ),
+      ],
     );
   }
 }
 
-class _StyleCard extends StatelessWidget {
-  const _StyleCard({required this.preset, required this.onTap});
+class _StyleTile extends StatelessWidget {
+  const _StyleTile({
+    required this.preset,
+    required this.selected,
+    required this.onTap,
+  });
 
-  final _StylePreset preset;
+  final StylePreset preset;
+  final bool selected;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      borderRadius: BorderRadius.circular(20),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Ink(
-          decoration: BoxDecoration(gradient: preset.gradient),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: selected
+                    ? Colors.white.withValues(alpha: 0.9)
+                    : Colors.white.withValues(alpha: 0.12),
+                width: selected ? 2 : 1,
+              ),
+              color: selected
+                  ? Colors.white.withValues(alpha: 0.06)
+                  : Colors.transparent,
+            ),
+            child: Row(
               children: [
-                Icon(preset.icon, color: Colors.white, size: 32),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      preset.label,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      preset.blurb,
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.85),
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    gradient: preset.gradient,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(preset.icon, color: Colors.white, size: 22),
                 ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        preset.label,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                        ),
+                      ),
+                      Text(
+                        preset.blurb,
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.55),
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (selected)
+                  const Icon(Icons.check_circle, color: Colors.white, size: 20),
               ],
             ),
           ),
@@ -161,56 +300,84 @@ class _StyleCard extends StatelessWidget {
   }
 }
 
-class _StylePreset {
-  const _StylePreset({
+/// Right column: the phone mockup wrapping a live [OnboardingView].
+class _PreviewArea extends StatefulWidget {
+  const _PreviewArea({
+    super.key,
     required this.style,
-    required this.label,
-    required this.blurb,
-    required this.icon,
-    required this.gradient,
+    required this.onRestart,
   });
 
   final OnboardingStyle style;
-  final String label;
-  final String blurb;
-  final IconData icon;
-  final Gradient gradient;
+  final VoidCallback onRestart;
+
+  @override
+  State<_PreviewArea> createState() => _PreviewAreaState();
 }
 
-const _presets = <_StylePreset>[
-  _StylePreset(
-    style: OnboardingStyle.glassmorphism,
-    label: 'Glassmorphism',
-    blurb: 'Frosted cards, vivid gradient',
-    icon: Icons.blur_on,
-    gradient: LinearGradient(colors: [Color(0xFF6A11CB), Color(0xFF2575FC)]),
-  ),
-  _StylePreset(
-    style: OnboardingStyle.liquidGlass,
-    label: 'Liquid Glass',
-    blurb: 'Apple-style depth & sheen',
-    icon: Icons.water_drop,
-    gradient: LinearGradient(colors: [Color(0xFF1D2B64), Color(0xFF3A1C71)]),
-  ),
-  _StylePreset(
-    style: OnboardingStyle.minimal,
-    label: 'Minimal',
-    blurb: 'Typography-first, flat',
-    icon: Icons.horizontal_rule,
-    gradient: LinearGradient(colors: [Color(0xFF232526), Color(0xFF414345)]),
-  ),
-  _StylePreset(
-    style: OnboardingStyle.material,
-    label: 'Material',
-    blurb: 'Material 3, filled buttons',
-    icon: Icons.widgets,
-    gradient: LinearGradient(colors: [Color(0xFF7F53AC), Color(0xFF647DEE)]),
-  ),
-  _StylePreset(
-    style: OnboardingStyle.adaptive,
-    label: 'Adaptive',
-    blurb: 'Responsive + keyboard nav',
-    icon: Icons.devices,
-    gradient: LinearGradient(colors: [Color(0xFF11998E), Color(0xFF38EF7D)]),
-  ),
-];
+class _PreviewAreaState extends State<_PreviewArea> {
+  bool _finished = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: PhoneMockup(
+        child: _finished
+            ? _FinishedCard(
+                style: widget.style,
+                onRestart: () {
+                  setState(() => _finished = false);
+                  widget.onRestart();
+                },
+              )
+            : OnboardingView(
+                style: widget.style,
+                storage: appStorage,
+                storageKey: storageKeyFor(widget.style),
+                transition: transitionFor(widget.style),
+                pages: pagesFor(widget.style),
+                onFinish: () => setState(() => _finished = true),
+              ),
+      ),
+    );
+  }
+}
+
+class _FinishedCard extends StatelessWidget {
+  const _FinishedCard({required this.style, required this.onRestart});
+
+  final OnboardingStyle style;
+  final VoidCallback onRestart;
+
+  @override
+  Widget build(BuildContext context) {
+    return ColoredBox(
+      color: const Color(0xFF12121A),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.check_circle,
+                color: Color(0xFF38EF7D), size: 64),
+            const SizedBox(height: 16),
+            const Text(
+              'Onboarding complete',
+              style: TextStyle(color: Colors.white, fontSize: 18),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              style.name,
+              style: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
+            ),
+            const SizedBox(height: 20),
+            FilledButton.tonalIcon(
+              onPressed: onRestart,
+              icon: const Icon(Icons.replay),
+              label: const Text('Restart'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

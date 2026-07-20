@@ -4,6 +4,61 @@ import 'package:onboarding_view/onboarding_view.dart';
 /// Per-style storage keys so each demo remembers its own completion state.
 String storageKeyFor(OnboardingStyle style) => 'seen_onboarding_${style.name}';
 
+/// Metadata for a selectable style shown in the left panel.
+class StylePreset {
+  const StylePreset({
+    required this.style,
+    required this.label,
+    required this.blurb,
+    required this.icon,
+    required this.gradient,
+  });
+
+  final OnboardingStyle style;
+  final String label;
+  final String blurb;
+  final IconData icon;
+  final Gradient gradient;
+}
+
+const stylePresets = <StylePreset>[
+  StylePreset(
+    style: OnboardingStyle.glassmorphism,
+    label: 'Glassmorphism',
+    blurb: 'Frosted cards, vivid gradient',
+    icon: Icons.blur_on,
+    gradient: LinearGradient(colors: [Color(0xFF6A11CB), Color(0xFF2575FC)]),
+  ),
+  StylePreset(
+    style: OnboardingStyle.liquidGlass,
+    label: 'Liquid Glass',
+    blurb: 'Apple-style depth & sheen',
+    icon: Icons.water_drop,
+    gradient: LinearGradient(colors: [Color(0xFF1D2B64), Color(0xFF3A1C71)]),
+  ),
+  StylePreset(
+    style: OnboardingStyle.minimal,
+    label: 'Minimal',
+    blurb: 'Typography-first, flat',
+    icon: Icons.horizontal_rule,
+    gradient: LinearGradient(colors: [Color(0xFF232526), Color(0xFF414345)]),
+  ),
+  StylePreset(
+    style: OnboardingStyle.material,
+    label: 'Material',
+    blurb: 'Material 3, filled buttons',
+    icon: Icons.widgets,
+    gradient: LinearGradient(colors: [Color(0xFF7F53AC), Color(0xFF647DEE)]),
+  ),
+  StylePreset(
+    style: OnboardingStyle.adaptive,
+    label: 'Adaptive',
+    blurb: 'Responsive + keyboard nav',
+    icon: Icons.devices,
+    gradient: LinearGradient(colors: [Color(0xFF11998E), Color(0xFF38EF7D)]),
+  ),
+];
+
 /// Showcases a different transition per style.
 OnboardingTransition transitionFor(OnboardingStyle style) => switch (style) {
       OnboardingStyle.glassmorphism => OnboardingTransition.parallax,
